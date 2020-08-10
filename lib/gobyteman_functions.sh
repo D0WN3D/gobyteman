@@ -14,7 +14,7 @@ C_CYAN="\e[36m"
 C_NORM="\e[0m"
 
 GoByte_ORG='https://www.gobyte.network'
-DOWNLOAD_PAGE='https://github.com/gobytecoin/gobyte/releases'
+DOWNLOAD_PAGE='https://www.dash.org/downloads/'
 CHECKSUM_URL='https://www.gobyte.network/binaries/SHA256SUMS.asc'
 GoByteD_RUNNING=0
 GoByteD_RESPONDING=0
