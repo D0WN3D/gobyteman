@@ -1140,9 +1140,9 @@ print_status() {
     pending "${messages["status_dconcnt"]}" ; [ $GoByteD_CONNECTIONS   -gt 0 ] && ok "$GoByteD_CONNECTIONS" || err "$GoByteD_CONNECTIONS"
     pending "${messages["status_dblsync"]}" ; [ $GoByteD_SYNCED     -gt 0 ] && ok "${messages["YES"]}" || err "${messages["NO"]}"
     pending "${messages["status_dbllast"]}" ; [ $GoByteD_SYNCED     -gt 0 ] && ok "$GoByteD_CURRENT_BLOCK" || err "$GoByteD_CURRENT_BLOCK"
-    pending "${messages["status_webchai"]}" ; [ $WEB_BLOCK_COUNT_CHAINZ -gt 0 ] && ok "$WEB_BLOCK_COUNT_CHAINZ" || err "$WEB_BLOCK_COUNT_CHAINZ"
-    pending "${messages["status_webdark"]}" ; [ $WEB_BLOCK_COUNT_DQA    -gt 0 ] && ok "$WEB_BLOCK_COUNT_DQA" || err "$WEB_BLOCK_COUNT_DQA"
-    pending "${messages["status_webgobyte"]}" ; [ $WEB_BLOCK_COUNT_DWHALE -gt 0 ] && ok "$WEB_BLOCK_COUNT_DWHALE" || err "$WEB_BLOCK_COUNT_DWHALE"
+    #pending "${messages["status_webchai"]}" ; [ $WEB_BLOCK_COUNT_CHAINZ -gt 0 ] && ok "$WEB_BLOCK_COUNT_CHAINZ" || err "$WEB_BLOCK_COUNT_CHAINZ"
+    #pending "${messages["status_webdark"]}" ; [ $WEB_BLOCK_COUNT_DQA    -gt 0 ] && ok "$WEB_BLOCK_COUNT_DQA" || err "$WEB_BLOCK_COUNT_DQA"
+    #pending "${messages["status_webgobyte"]}" ; [ $WEB_BLOCK_COUNT_DWHALE -gt 0 ] && ok "$WEB_BLOCK_COUNT_DWHALE" || err "$WEB_BLOCK_COUNT_DWHALE"
     pending "${messages["status_webmast"]}" ; [ $WEB_ME_FORK_DETECT -gt 0 ] && err "$WEB_ME" || ok "$WEB_ME"
     pending "${messages["status_dcurdif"]}" ; ok "$GoByteD_DIFFICULTY"
     if [ $GoByteD_RUNNING -gt 0 ] && [ $MN_CONF_ENABLED -gt 0 ] ; then
