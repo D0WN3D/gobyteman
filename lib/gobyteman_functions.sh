@@ -2,7 +2,7 @@
 
 # gobyteman_functions.sh - common functions and variables
 
-# Copyright (c) 2015-2017 D0WN3D - D0WN3D@masternode.me
+# Copyright (c) 2015-2017 moocowmoo - moocowmoo@masternode.me
 
 # variables are for putting things in ----------------------------------------
 
