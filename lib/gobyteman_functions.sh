@@ -13,6 +13,8 @@ C_PURPLE="\e[35m"
 C_CYAN="\e[36m"
 C_NORM="\e[0m"
 
+GITHUB_API_GoByte="https://api.github.com/repos/gobytecoin/gobyte"
+
 GoByte_ORG='https://www.gobyte.network'
 DOWNLOAD_PAGE='https://www.gobyte.network/downloads/'
 CHECKSUM_URL='https://www.gobyte.network/binaries/SHA256SUMS.asc'
@@ -26,7 +28,49 @@ else
     GoByteMAN_CHECKOUT=" ("$GoByteMAN_CHECKOUT")"
 fi
 
+[ -z "$CACHE_EXPIRE" ] && CACHE_EXPIRE=5
+[ -z "$ENABLE_CACHE" ] && ENABLE_CACHE=0
+
+CACHE_CMD=''
+[ $ENABLE_CACHE -gt 0 ] && CACHE_CMD='cached_cmd'
+
+CACHE_DIR=/tmp/gobyteman_cache
+mkdir -p $CACHE_DIR
+chmod 700 $CACHE_DIR
+
 curl_cmd="timeout 7 curl -s -L -A gobyteman/$GoByteMAN_VERSION"
+function cached_cmd() {
+    cmd=""
+    whitespace="[[:space:]]"
+    punctuation="&"
+    for i in "$@"; do
+        if [[ $i =~ $whitespace ]];then
+            i=\'$i\'
+        fi
+        if [[ $i =~ $punctuation ]];then
+            i=\'$i\'
+        fi
+        cmd="$cmd $i"
+    done
+
+    FILE_HASH=$(echo $cmd| md5sum | awk '{print $1}')
+    CACHE_FILE=$CACHE_DIR/$FILE_HASH
+    find $CACHE_DIR -type f \( -name '*.cached' -o -name '*.err' -o -name '*.cmd' \) -cmin +$CACHE_EXPIRE -exec rm {} \; >/dev/null 2>&1
+    if [ -e $CACHE_FILE.cached ];then
+        cat $CACHE_FILE.cached
+        return
+    fi
+    echo $cmd > $CACHE_FILE.cmd
+    eval $cmd > $CACHE_FILE.cached 2> $CACHE_FILE.err
+    if [ $? -gt 0 ];then
+        exit $?
+    fi
+    if [ -e $CACHE_FILE.cached ];then
+        cat $CACHE_FILE.cached
+        return
+    fi
+}
+curl_cmd="$CACHE_CMD $curl_cmd"
 wget_cmd='wget --no-check-certificate -q'
 
 
@@ -308,33 +352,24 @@ _get_versions() {
         DOWNLOAD_FOR='RPi2'
     fi
 
+    GITHUB_RELEASE_JSON="$($curl_cmd $GITHUB_API_GoByte/releases/latest | python -mjson.tool)"
+    CHECKSUM_URL=$(echo "$GITHUB_RELEASE_JSON" | grep browser_download | grep SUMS.asc | cut -d'"' -f4)
     CHECKSUM_FILE=$( $curl_cmd $CHECKSUM_URL )
-    DOWNLOAD_HTML=$( echo "$CHECKSUM_FILE" )
 
-    read -a DOWNLOAD_URLS <<< $( echo $DOWNLOAD_HTML | sed -e 's/ /\n/g' | grep -v '.asc' | grep $DOWNLOAD_FOR | tr "\n" " ")
-
+    read -a DOWNLOAD_URLS <<< $( echo "$GITHUB_RELEASE_JSON" | grep browser_download | grep -v 'debug' | grep -v '.asc' | grep $DOWNLOAD_FOR | cut -d'"' -f4 | tr "\n" " ")
     #$(( <-- vim syntax highlighting fix
-    LATEST_VERSION=$( echo ${DOWNLOAD_URLS[0]} | perl -ne '/gobytecore-([0-9.]+)-/; print $1;' 2>/dev/null )
+
+    LATEST_VERSION=$(echo "$GITHUB_RELEASE_JSON" | grep tag_name | cut -d'"' -f4 | tr -d 'v')
+    TARDIR="gobytecore-${LATEST_VERSION::-2}"
     if [ -z "$LATEST_VERSION" ]; then
-        die "\n${messages["err_could_not_get_version"]} $DOWNLOAD_PAGE -- ${messages["exiting"]}"
+        die "\n${messages["err_could_not_get_version"]} -- ${messages["exiting"]}"
     fi
 
     if [ -z "$GoByte_CLI" ]; then GoByte_CLI='echo'; fi
     CURRENT_VERSION=$( $GoByte_CLI --version | perl -ne '/v([0-9.]+)/; print $1;' 2>/dev/null ) 2>/dev/null
     for url in "${DOWNLOAD_URLS[@]}"
     do
-        if [ $DOWNLOAD_FOR == 'linux' ] ; then
-            if [[ $url =~ .*linux${BITS}.* ]] ; then
-                if [[ ! $url =~ "http" ]] ; then
-                    url=$GoByte_ORG"/binaries/"$url
-                fi
-                DOWNLOAD_URL=$url
-                DOWNLOAD_FILE=${DOWNLOAD_URL##*/}
-            fi
-        elif [ $DOWNLOAD_FOR == 'RPi2' ] ; then
-            if [[ ! $url =~ "http" ]] ; then
-                url=$GoByte_ORG"/binaries/"$url
-            fi
+        if [[ $url =~ .*${PLAT}-linux.* ]] ; then
             DOWNLOAD_URL=$url
             DOWNLOAD_FILE=${DOWNLOAD_URL##*/}
         fi
