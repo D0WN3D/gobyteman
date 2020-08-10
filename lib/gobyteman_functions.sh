@@ -1027,7 +1027,7 @@ awk ' \
 
     if [ $MN_VISIBLE -gt 0 ]; then
         MN_QUEUE_LENGTH=$MN_ENABLED
-        MN_QUEUE_POSITION=$(echo "$SORTED_MN_LIST" | grep ENABLED | grep -A12455999 $MASTERNODE_BIND_IP | wc -l)
+        MN_QUEUE_POSITION=$(echo "$SORTED_MN_LIST" | grep ENABLED | grep -A99999999 $MASTERNODE_BIND_IP | wc -l)
         if [ $MN_QUEUE_POSITION -gt 0 ]; then
             MN_QUEUE_IN_SELECTION=$(( $MN_QUEUE_POSITION <= $(( $MN_QUEUE_LENGTH / 10 )) ))
         fi
